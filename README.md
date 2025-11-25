@@ -1,28 +1,63 @@
-# Physical AI 학습 로드맵 - 1단계: 강화학습 기반 로봇 제어
+# Physical AI 학습 로드맵
 
-이 리포지토리는 "Physical AI 학습 로드맵"의 첫 번째 단계인 **로봇 제어 및 강화학습 기반 행동 학습**에 대한 MATLAB 코드 예제를 포함합니다.
+이 리포지토리는 Physical AI 학습 로드맵에 따라 주차별로 학습한 내용과 관련 코드를 정리하는 공간입니다.
 
-주요 목표는 시뮬레이션 데이터를 통해 로봇의 동역학(dynamics)을 국소적(locally)으로 학습하고, iLQR(Iterative Linear Quadratic Regulator)과 같은 궤적 최적화(trajectory optimization) 알고리즘을 사용하여 제어 정책을 개선하는 과정을 이해하는 것입니다. 이는 Guided Policy Search (GPS)와 같은 고급 강화학습 알고리즘의 핵심 구성 요소입니다.
+> **전체 로드맵 개요**: 기초 로보틱스 → 강화학습 기반 로봇 제어 → 멀티모달 인지 및 LLM 융합 → 실환경 통합 시스템 설계
 
-## 주요 개념
+---
 
-이 코드들은 다음과 같은 핵심 개념을 다룹니다.
+## Week 1: 로봇 제어 및 강화학습 기반 행동 학습
 
-- **지역적 동역학 학습 (Learning Local Dynamics):** 복잡한 실제 로봇 동역학을 특정 궤적 주변에서 시변(time-varying) 선형 모델 `x_{t+1} = A_t * x_t + B_t * u_t + c_t`로 근사합니다.
-- **iLQR (Iterative Linear Quadratic Regulator):** 학습된 지역적 동역학 모델과 비용 함수를 사용하여, 목표를 더 잘 달성하는 새로운 제어 입력을 반복적으로 찾아 최적의 궤적을 생성합니다.
-- **KL-Divergence 제약 (KL-Divergence Constraint):** 정책이 너무 급격하게 변하는 것을 막고 안정적인 학습을 돕기 위해, 새로운 정책이 이전 정책에서 크게 벗어나지 않도록 제한하는 '신뢰 영역(Trust Region)'을 설정합니다.
+### 학습 목표
+- Low-level control을 학습하는 로봇 에이전트의 기본 구조 이해
+- 시뮬레이터 상에서 강화학습(RL)으로 정책을 학습하고, 이를 실세계로 옮기는 흐름(Sim-to-Real) 파악
 
-## 파일 구성 및 설명
+### 리뷰 논문
+- **Levine, S. et al. (2016).** *End-to-End Training of Deep Visuomotor Policies. JMLR.*
+- **Zhu, Y. et al. (2020).** *RoboSuite: A Modular Simulation Framework for Robot Learning. arXiv:2009.12293.*
+- **Kalashnikov, D. et al. (2018).** *QT-Opt: Scalable Deep Reinforcement Learning for Vision-Based Robotic Manipulation. arXiv:1806.10293.*
+- **Peng, X. et al. (2018).** *Sim-to-Real Transfer of Robotic Control with Dynamics Randomization. ICRA.*
 
-이 리포지토리는 `Week1` 폴더에 다음과 같은 주요 MATLAB 스크립트를 포함하고 있습니다.
+### 코드
+- 관련 코드는 `Week1` 폴더에 있으며, 세부 내용은 `Week1/README.md`를 참고하세요.
 
-- **`demo_gps_local_update.m`**: 메인 데모 스크립트입니다. 아래의 모든 과정을 통합하여 Guided Policy Search (GPS)의 지역 정책 업데이트(local policy update) 단계를 시뮬레이션합니다. **이 스크립트를 실행하면 전체 과정을 확인할 수 있습니다.**
-- **`learn_local_dynamics_rr.m`**: 가상의 2-DOF 로봇팔(RR arm)을 PD 제어기로 구동하여 궤적 데이터를 수집하고, 특정 시점의 지역적 동역학을 선형 회귀로 추정하는 과정을 보여줍니다.
-- **`estimate_local_dynamics.m`**: `learn_local_dynamics_rr.m`에서 생성된 궤적 데이터 전체에 대해 각 시간 스텝별 동역학 행렬(A, B, c)을 추정하는 함수입니다.
-- **`run_ilqr_local_update.m`**: 추정된 지역적 동역학을 기반으로 표준 iLQR 알고리즘을 수행하여 최적 제어 정책을 찾는 함수입니다.
-- **`run_ilqr_with_kl_constraint.m`**: 표준 iLQR에 KL-Divergence 제약을 추가하여, 정책이 안정적으로 업데이트되도록 개선한 iLQR 알고리즘을 구현한 함수입니다.
-- **`cost_functions_example.m`**: iLQR 최적화에 사용될 목표 상태와 비용 함수(State/Terminal Cost)를 정의하는 헬퍼 함수입니다.
+---
 
-## 실행 방법
+## Week 2: High-level Task Planning (언어·추론 기반 제어)
 
-MATLAB에서 `demo_gps_local_update.m` 스크립트를 실행하면, 데이터 생성, 동역학 추정, iLQR 및 KL-iLQR을 통한 최적화, 결과 비교 시각화까지의 전체 파이프라인을 확인할 수 있습니다.
+### 학습 목표
+- LLM이 로봇의 고수준 언어 명령을 해석하고 계획을 세우는 과정 이해
+
+### 리뷰 논문
+- **Ahn et al., (2022).** *Do As I Can, Not As I Say (SayCan).*
+- **Driess et al., (2023).** *PaLM-E: An Embodied Multimodal Language Model.*
+- **Zeng et al., (2023).** *VoxPoser: Composable 3D Value Maps for Robotic Manipulation.*
+- **Zeng et al., (2023).** *Large Language Models for Robotics: A Survey. arXiv:2311.07226.*
+
+---
+
+## Week 3: LLM + 강화학습 하이브리드 통합 구조
+
+### 학습 목표
+- LLM이 계획을 세우고, RL이 세부 동작을 수행하는 결합 구조 설계 능력 확보
+
+### 리뷰 논문
+- **Moroncelli et al., (2024).** *Integrating Reinforcement Learning with Foundation Models for Autonomous Robotics. arXiv:2410.16411.*
+- **Yin et al., (2025).** *Grounding Open-Domain Knowledge from LLMs to Real-World RL Tasks: A Survey. IJCAI.*
+- **Zhang et al., (2025).** *The Landscape of Agentic Reinforcement Learning for LLMs.*
+- **Kim et al., (2024).** *A Survey on Integration of Large Language Models with Intelligent Robots. Springer.*
+
+---
+
+## Week 4: Embodied AI 및 Agentic LLM 기반 로봇
+
+### 학습 목표
+- 실세계에서 스스로 학습하고 의사결정하는 자율형 로봇 설계 개념 이해
+
+### 리뷰 논문
+- **Khan et al., (2025).** *Foundation Model Driven Robotics: A Comprehensive Review.*
+- **Liang et al., (2025).** *Large Model Empowered Embodied AI: A Survey on Decision-Making and Embodied Learning.*
+- **Raptis et al., (2025).** *Agentic LLM-based Robotic Systems: Ethics and Real-World Challenges.*
+- **Zhang et al., (2025).** *Embodied Intelligent Industrial Robotics: Concepts and Techniques.*
+
+---
